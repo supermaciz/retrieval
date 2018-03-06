@@ -58,6 +58,13 @@ defmodule RetrievalTest do
     assert Retrieval.prefix(@payload_trie, "abc") == []
   end
 
+  test "payload prefix!" do
+    assert Retrieval.prefix!(@payload_trie, "da") == {"dad", [
+      {"daddy", "d"}, {"dadoobidoo", "d"}, {"dad", "d"}]}
+    assert Retrieval.prefix!(@payload_trie, "winter") == {"winter", [{"winter", "w"}]}
+    assert Retrieval.prefix!(@payload_trie, "abc") == {nil, []}
+  end
+
   test "payload pattern" do
     assert Retrieval.pattern(@payload_trie, "*{1}{1}**") == [{"apple", "a"}, {"apply", "a"}]
     assert Retrieval.pattern(@payload_trie, "[^abc]{1}{1}**") == []

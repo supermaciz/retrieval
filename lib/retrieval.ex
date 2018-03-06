@@ -180,13 +180,17 @@ defmodule Retrieval do
   defp _prefix!(trie, <<>>, acc) do
     case Enum.count(trie) do
       1 ->
-	case Map.keys(trie) do
-	  [:mark] -> {acc, [acc]}
-	  [ch] -> _prefix!(trie[ch], <<>>, acc <> <<ch>>)
-	end
+        case Map.keys(trie) do
+          [:mark] ->
+            case trie.mark do
+              :mark -> {acc, [acc]}
+              payload -> {acc, [{acc, payload}]}
+            end
+          [ch] -> _prefix!(trie[ch], <<>>, acc <> <<ch>>)
+        end
       _ ->
-	matches = _prefix(trie, <<>>, acc)
-	{acc, matches}
+        matches = _prefix(trie, <<>>, acc)
+        {acc, matches}
     end
   end
 

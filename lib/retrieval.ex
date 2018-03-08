@@ -8,18 +8,21 @@ defmodule Retrieval do
   """
 
   @doc """
-  Returns a new trie. Providing no arguments creates an empty trie. Optionally a binary or
-  list of binaries can be passed to `new/1`.
+  Returns a new trie. Providing no arguments creates an empty trie. Optionally a binary,
+  list of binaries or a binary with a payload `{"String", whatever}` can be passed to `new/1`.
 
   ## Examples
 
-        Retrieval.new
+        iex> Retrieval.new
         %Retrieval.Trie{...}
 
-        Retrieval.new("apple")
+        iex> Retrieval.new("apple")
         %Retrieval.Trie{...}
 
-        Retrieval.new(~w/apple apply ape ample/)
+        iex> Retrieval.new(~w/apple apply ape ample/)
+        %Retrieval.Trie{...}
+
+        iex> Retrieval.new({"apple", {:fruit, 12}})
         %Retrieval.Trie{...}
 
   """
@@ -43,10 +46,13 @@ defmodule Retrieval do
 
   ## Examples
 
-        Retrieval.new |> Retrieval.insert("apple")
+        iex> Retrieval.new |> Retrieval.insert("apple")
         %Retrieval.Trie{...}
 
-        Retrieval.new(~w/apple apply ape ample/) |> Retrieval.insert(~w/zebra corgi/)
+        iex> Retrieval.new(~w/apple apply ape ample/) |> Retrieval.insert(~w/zebra corgi/)
+        %Retrieval.Trie{...}
+
+        iex> Retrieval.new |> Retrieval.insert({"apple", 8})
         %Retrieval.Trie{...}
 
   """
@@ -90,11 +96,14 @@ defmodule Retrieval do
 
   ## Examples
 
-        Retrieval.new(~w/apple apply ape ample/) |> Retrieval.contains?("apple")
+        iex> Retrieval.new(~w/apple apply ape ample/) |> Retrieval.contains?("apple")
         true
 
-        Retrieval.new(~w/apple apply ape ample/) |> Retrieval.contains?("zebra")
+        iex> Retrieval.new(~w/apple apply ape ample/) |> Retrieval.contains?("zebra")
         false
+
+        iex> Retrieval.new({"apple", {:fruit, 12}}) |> Retrieval.contains?("apple")
+        true
 
   """
 
@@ -122,11 +131,14 @@ defmodule Retrieval do
 
   ## Examples
 
-        Retrieval.new(~w/apple apply ape ample/) |> Retrieval.prefix("ap")
+        iex> Retrieval.new(~w/apple apply ape ample/) |> Retrieval.prefix("ap")
         ["apple", "apply", "ape"]
 
-        Retrieval.new(~w/apple apply ape ample/) |> Retrieval.prefix("z")
+        iex> Retrieval.new(~w/apple apply ape ample/) |> Retrieval.prefix("z")
         []
+
+        iex> Retrieval.new(["apple", {"apply", 78}, "ape", "zebra"]) |> Retrieval.prefix("a")
+        ["ape", "apple", {"apply", 78}]
 
   """
 
@@ -158,11 +170,14 @@ defmodule Retrieval do
 
   ## Examples
 
-        Retrieval.new(~w/apple apply ape/) |> Retrieval.prefix!("a")
+        iex> Retrieval.new(~w/apple apply ape/) |> Retrieval.prefix!("a")
         {"ap", ["apple", "apply", "ape"]}
 
-        Retrieval.new(~w/apple apply ape ample/) |> Retrieval.prefix("z")
+        iex> Retrieval.new(~w/apple apply ape ample/) |> Retrieval.prefix!("z")
         {nil, []}
+
+        iex> Retrieval.new(["apple", {"apply", 78}, "ape"]) |> Retrieval.prefix!("a")
+        {"ap", ["ape", "apple", {"apply", 78}]}
 
   """
   
@@ -213,20 +228,23 @@ defmodule Retrieval do
 
   ## Examples
 
-        Retrieval.new(~w/apple apply ape ample/) |> Retrieval.pattern("a{1}{1}**")
+        iex> Retrieval.new(~w/apple apply ape ample/) |> Retrieval.pattern("a{1}{1}**")
         ["apple", "apply"]
 
-        Retrieval.new(~w/apple apply ape ample/) |> Retrieval.pattern("*{1[^p]}{1}**")
+        iex> Retrieval.new(~w/apple apply ape ample/) |> Retrieval.pattern("*{1[^p]}{1}**")
         []
 
-        Retrieval.new(~w/apple apply zebra house/) |> Retrieval.pattern("[hz]****")
+        iex> Retrieval.new(~w/apple apply zebra house/) |> Retrieval.pattern("[hz]****")
         ["house", "zebra"]
 
-        Retrieval.new(~w/apple apply zebra house/) |> Retrieval.pattern("[hz]***[^ea]")
+        iex> Retrieval.new(~w/apple apply zebra house/) |> Retrieval.pattern("[hz]***[^ea]")
         []
 
-        Retrieval.new(~w/apple apply zebra house/) |> Retrieval.pattern("[hz]***[^ea")
+        iex> Retrieval.new(~w/apple apply zebra house/) |> Retrieval.pattern("[hz]***[^ea")
         {:error, "Dangling group (exclusion) starting at column 8, expecting ]"}
+
+        iex> Retrieval.new([{"apple", :fruit}, {"zebra", :animal}]) |> Retrieval.pattern("*e***")
+        [{"zebra", :animal}]
 
   """
 
